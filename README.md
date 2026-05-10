@@ -1,34 +1,97 @@
 # Auto Insurance Pricing — GLM in Python
 
-End-to-end auto insurance pricing pipeline using **Generalized Linear Models (GLM)** in Python, exposed as a REST API.
+Production-style auto insurance pricing engine using **Generalized Linear Models (GLM)** in Python, exposed as a REST API.
 
-## Project goals
+Replicates the standard actuarial workflow used in the insurance industry:
 
-This project replicates a typical actuarial pricing workflow used in the insurance industry:
+| Component | Model | Predicts |
+|---|---|---|
+| **Frequency** | Poisson GLM (log-link, exposure offset) | Claims per policy/year |
+| **Severity** | Gamma GLM (log-link) | Cost per claim (€) |
+| **Pure Premium** | Frequency × Severity | Technical price (€) |
 
-- **Frequency model** (Poisson GLM) — predicts the expected number of claims per policy/year
-- **Severity model** (Gamma GLM) — predicts the expected cost per claim
-- **Pure premium** = Frequency × Severity — the technical price before commercial loadings
-- **REST API** — accepts JSON input with policyholder features, returns the calculated premium
+##  Quickstart
 
-## 🛠️ Tech stack
+```bash
+# 1. Setup
+git clone https://github.com/leo-martinez/insurance-pricing-glm.git
+cd insurance-pricing-glm
+python -m venv venv
+venv\Scripts\activate          # Windows
+pip install -r requirements.txt
 
-- **Python 3.12**
-- **Pandas / NumPy** — data manipulation
-- **statsmodels** — GLM implementation (Poisson + Gamma)
-- **scikit-learn** — preprocessing and validation
-- **FastAPI** — REST endpoint
+# 2. Download dataset (~50MB)
+python src/download_data.py
+
+# 3. Train and save models
+jupyter notebook notebooks/01_train_models.ipynb   # run all cells
+
+# 4. Start the API
+uvicorn src.api.main:app --reload
+```
+
+API now running at **http://localhost:8000** — docs at **http://localhost:8000/docs**.
+
+## 📡 Example request
+
+```bash
+curl -X POST http://localhost:8000/quote \
+  -H "Content-Type: application/json" \
+  -d @examples/sample_request.json
+```
+
+Response:
+
+```json
+{
+  "expected_frequency": 0.0742,
+  "expected_severity": 1854.32,
+  "pure_premium": 137.59,
+  "currency": "EUR"
+}
+```
+
+## Tech stack
+
+- **Python 3.12** · **Pandas** · **NumPy**
+- **statsmodels** — GLM implementation
+- **scikit-learn** — train/test split, metrics
+- **FastAPI** + **Pydantic** — REST API with input validation
 - **pytest** — automated tests
-- **Databricks / PySpark** — distributed version (final phase)
+- **Jupyter** — model training notebook
 
 ## Dataset
 
-Public **French Motor Third-Party Liability Claims** dataset, widely used in actuarial science research and education.
+Public **French Motor Third-Party Liability** dataset (`freMTPL2`), widely used in actuarial research. ~680k policies, fetched from OpenML.
 
-## Status
+## Tests
 
-Work in progress — built incrementally as a portfolio project.
+```bash
+pytest tests/ -v
+```
+
+## Project structure
+insurance-pricing-glm/
+├── notebooks/01_train_models.ipynb   # EDA + GLM training
+├── src/
+│   ├── download_data.py              # fetch dataset
+│   └── api/                          # FastAPI app
+├── models/                           # trained .pkl (gitignored)
+├── tests/                            # pytest suite
+├── examples/sample_request.json      # API input example
+└── requirements.txt
+
+## 🚧 Roadmap
+
+- [x] Frequency model (Poisson GLM)
+- [x] Severity model (Gamma GLM)
+- [x] FastAPI endpoint with Pydantic validation
+- [x] Test suite
+- [ ] Distributed version with PySpark/Databricks
+- [ ] Docker image
+- [ ] CI/CD with GitHub Actions
 
 ---
 
 **Author:** Leonardo Martínez · [LinkedIn](https://linkedin.com/in/leo-martinez)
+🇪🇸 Spanish citizen — open to opportunities in Spain.
