@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from src.api.schemas import QuoteRequest, QuoteResponse
 
 # ---------- Load coefficients on startup ----------
@@ -61,6 +62,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
