@@ -451,17 +451,17 @@
       <div class="metric">
         <p class="metric-label">Custo médio</p>
         <p class="metric-value" id="res_sev">—</p>
-        <p class="metric-sub">€ por sinistro</p>
+        <p class="metric-sub">R$ por sinistro</p>
       </div>
       <div class="metric highlight">
         <p class="metric-label">Prêmio Puro</p>
         <p class="metric-value" id="res_premio">—</p>
-        <p class="metric-sub" id="res_periodo">€ / período</p>
+        <p class="metric-sub" id="res_periodo">R$ / período</p>
       </div>
     </div>
 
     <p class="disclaimer">
-      Prêmio puro técnico calculado via GLM Poisson × Gamma sobre o dataset French Motor TPL.<br>
+      Prêmio puro técnico calculado via GLM Poisson × Gamma sobre o dataset French Motor TPL, convertido para BRL pelo câmbio do dia.<br>
       Não inclui carregamentos comerciais, IOF ou demais taxas.
     </p>
 
@@ -529,6 +529,20 @@
     setDot(1,'done'); setDot(2,'active'); setDot(3,'');
   }
 
+  async function getCambio() {
+    try {
+      const r = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+      const d = await r.json();
+      return d.rates.BRL || 6.0;
+    } catch(e) {
+      return 6.0;
+    }
+  }
+
+  function fmtBRL(valor) {
+    return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   async function calcular() {
     const btn = document.getElementById('calcBtn');
     btn.textContent = 'Calculando...';
@@ -571,18 +585,22 @@
     const erroEl = document.getElementById('erroMsg');
 
     try {
-      const res = await fetch('https://insurance-pricing-glm.onrender.com/quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const [cambio, res] = await Promise.all([
+        getCambio(),
+        fetch('https://insurance-pricing-glm.onrender.com/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+      ]);
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Erro na API');
 
       document.getElementById('res_freq').textContent = (data.expected_frequency * 100).toFixed(1) + '%';
-      document.getElementById('res_sev').textContent = '€ ' + data.expected_severity.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('res_premio').textContent = '€ ' + data.pure_premium.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('res_periodo').textContent = coberturaTexto.toLowerCase();
+      document.getElementById('res_sev').textContent = fmtBRL(data.expected_severity * cambio);
+      document.getElementById('res_premio').textContent = fmtBRL(data.pure_premium * cambio);
+      document.getElementById('res_periodo').textContent = coberturaTexto.toLowerCase() + ' · câmbio EUR/BRL: ' + cambio.toFixed(2);
       erroEl.style.display = 'none';
     } catch(e) {
       erroEl.style.display = 'block';
