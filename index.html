@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Prêmio de Seguro Auto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e5e5e3;
+      padding: 2rem;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .brand {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2rem;
+    }
+
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500;
+      background: #f0f0ee;
+      color: #888;
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .step-dot.active { background: #e8f0fe; color: #1a56db; }
+    .step-dot.done { background: #e6f4ea; color: #137333; }
+
+    .step-line {
+      flex: 1; height: 1px;
+      background: #e5e5e3;
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .section {
+      border: 1px solid #e5e5e3;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .col-full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 12px;
+      color: #666;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: #1a56db; }
+    input::placeholder { color: #bbb; }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      background: #fff;
+      color: #1a1a1a;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover { background: #f5f5f3; }
+    .btn:active { transform: scale(0.99); }
+
+    .btn-primary {
+      background: #1a56db;
+      color: #fff;
+      border-color: #1a56db;
+    }
+
+    .btn-primary:hover { background: #1648c0; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 1.5rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .metric {
+      background: #f5f5f3;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .metric.highlight {
+      border: 1px solid #e5e5e3;
+      background: #fff;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .metric.highlight .metric-value {
+      font-size: 26px;
+      color: #1a56db;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .summary-table {
+      width: 100%;
+      font-size: 13px;
+      border-collapse: collapse;
+    }
+
+    .summary-table td { padding: 5px 0; }
+    .summary-table td:first-child { color: #666; width: 40%; }
+    .summary-table td:last-child { font-weight: 500; }
+
+    .disclaimer {
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      margin: 1rem 0;
+      line-height: 1.5;
+    }
+
+    .error-msg {
+      font-size: 13px;
+      color: #c0392b;
+      text-align: center;
+      padding: 10px;
+      background: #fdf0ee;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .powered {
+      text-align: center;
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 1.5rem;
+    }
+
+    .powered a { color: #bbb; }
+
+    @media (max-width: 500px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr; }
+      .col-full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <p class="brand">GLM Pricing Engine · Poisson × Gamma</p>
+  <h1>Simulador de Seguro Auto</h1>
+  <p class="subtitle">Preencha os dados para calcular o prêmio técnico estimado.</p>
+
+  <div class="steps">
+    <div>
+      <div class="step-dot active" id="dot1">1</div>
+    </div>
+    <div class="step-line"></div>
+    <div>
+      <div class="step-dot" id="dot2">2</div>
+    </div>
+    <div class="step-line"></div>
+    <div>
+      <div class="step-dot" id="dot3">3</div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+    <div class="section">
+      <p class="section-title">Dados do Condutor</p>
+      <div class="grid grid-2">
+        <div class="col-full">
+          <label>Nome completo</label>
+          <input type="text" id="nome" placeholder="Ex: João da Silva" />
+        </div>
+        <div>
+          <label>CPF</label>
+          <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" oninput="fmtCPF(this)" />
+        </div>
+        <div>
+          <label>Idade</label>
+          <input type="number" id="DrivAge" value="35" min="18" max="100" />
+        </div>
+        <div>
+          <label>CEP</label>
+          <input type="text" id="cep" placeholder="00000-000" maxlength="9" oninput="fmtCEP(this)" onblur="buscaCEP()" />
+        </div>
+        <div>
+          <label>Endereço</label>
+          <input type="text" id="endereco" placeholder="Rua, número" />
+        </div>
+        <div>
+          <label>Bairro</label>
+          <input type="text" id="bairro" placeholder="Bairro" />
+        </div>
+        <div>
+          <label>Cidade</label>
+          <input type="text" id="cidade" placeholder="Cidade" />
+        </div>
+        <div>
+          <label>Estado</label>
+          <select id="estado">
+            <option value="">Selecione</option>
+            <option>AC</option><option>AL</option><option>AM</option><option>AP</option>
+            <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+            <option>GO</option><option>MA</option><option>MG</option><option>MS</option>
+            <option>MT</option><option>PA</option><option>PB</option><option>PE</option>
+            <option>PI</option><option>PR</option><option>RJ</option><option>RN</option>
+            <option>RO</option><option>RR</option><option>RS</option><option>SC</option>
+            <option>SE</option><option selected>SP</option><option>TO</option>
+          </select>
+        </div>
+        <div class="col-full">
+          <label>Histórico de sinistros</label>
+          <select id="BonusMalus">
+            <option value="50">Excelente — sem sinistros (5+ anos)</option>
+            <option value="75">Bom — sem sinistros recentes</option>
+            <option value="100" selected>Neutro — condutor novo</option>
+            <option value="150">Regular — 1 sinistro</option>
+            <option value="230">Ruim — 2 ou mais sinistros</option>
+            <option value="350">Muito ruim — sinistros frequentes</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="irStep2()">
+      Avançar
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none;">
+    <div class="section">
+      <p class="section-title">Dados do Veículo</p>
+      <div class="grid grid-2">
+        <div>
+          <label>Tipo de veículo</label>
+          <select id="tipoVeiculo">
+            <option value="carro">Carro de passeio</option>
+            <option value="suv">SUV / Crossover</option>
+            <option value="pickup">Picape</option>
+            <option value="esportivo">Esportivo</option>
+          </select>
+        </div>
+        <div>
+          <label>Marca</label>
+          <select id="marcaVeiculo">
+            <option value="B1">Fiat</option>
+            <option value="B1">Volkswagen</option>
+            <option value="B2">Chevrolet</option>
+            <option value="B2">Ford</option>
+            <option value="B3">Toyota</option>
+            <option value="B3">Honda</option>
+            <option value="B3">Hyundai</option>
+            <option value="B3">Nissan</option>
+            <option value="B4">Jeep</option>
+            <option value="B4">Mitsubishi</option>
+            <option value="B5">BMW</option>
+            <option value="B5">Mercedes-Benz</option>
+            <option value="B5">Audi</option>
+            <option value="B6">Volvo</option>
+            <option value="B6">Land Rover</option>
+            <option value="B12">Ferrari</option>
+            <option value="B12">Porsche</option>
+          </select>
+        </div>
+        <div>
+          <label>Modelo</label>
+          <input type="text" id="modelo" placeholder="Ex: Onix, Civic, Corolla" />
+        </div>
+        <div>
+          <label>Ano / Modelo</label>
+          <input type="number" id="anoModelo" placeholder="Ex: 2021" min="1990" max="2026" />
+        </div>
+        <div>
+          <label>Potência do motor</label>
+          <select id="VehPower">
+            <option value="4">Popular — até 75cv (1.0)</option>
+            <option value="6">Compacto — 75–100cv (1.0T/1.4)</option>
+            <option value="7" selected>Médio — 100–150cv (1.4–1.8)</option>
+            <option value="9">SUV / 150–200cv (2.0)</option>
+            <option value="12">Esportivo — 200–300cv (2.0T+)</option>
+            <option value="15">Alto desempenho — 300cv+</option>
+          </select>
+        </div>
+        <div>
+          <label>Combustível</label>
+          <select id="VehGas">
+            <option value="Regular">Gasolina / Flex / Elétrico</option>
+            <option value="Diesel">Diesel</option>
+          </select>
+        </div>
+        <div>
+          <label>Cobertura</label>
+          <select id="Exposure">
+            <option value="1.0" selected>Anual (12 meses)</option>
+            <option value="0.5">Semestral (6 meses)</option>
+            <option value="0.25">Trimestral (3 meses)</option>
+          </select>
+        </div>
+        <div>
+          <label>Porte da cidade</label>
+          <select id="AreaDensity">
+            <option value="A|500">Interior rural</option>
+            <option value="B|1500">Cidade pequena</option>
+            <option value="C|5000">Cidade média</option>
+            <option value="D|27000" selected>Capital / grande cidade</option>
+            <option value="E|50000">Região metropolitana densa</option>
+            <option value="F|100000">Centro urbano denso</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="irStep1()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Voltar
+      </button>
+      <button class="btn btn-primary" onclick="calcular()" id="calcBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 7h6M9 12h6M9 17h4"/></svg>
+        Calcular Prêmio
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" style="display:none;">
+    <div class="section">
+      <p class="section-title">Resumo da Simulação</p>
+      <table class="summary-table">
+        <tr><td>Condutor</td><td id="r_nome">—</td></tr>
+        <tr><td>CPF</td><td id="r_cpf">—</td></tr>
+        <tr><td>Veículo</td><td id="r_veiculo">—</td></tr>
+        <tr><td>Ano / Modelo</td><td id="r_ano">—</td></tr>
+        <tr><td>Cobertura</td><td id="r_cobertura">—</td></tr>
+      </table>
+    </div>
+
+    <p id="erroMsg" class="error-msg"></p>
+
+    <div class="result-grid">
+      <div class="metric">
+        <p class="metric-label">Freq. de sinistro</p>
+        <p class="metric-value" id="res_freq">—</p>
+        <p class="metric-sub">probabilidade/ano</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Custo médio</p>
+        <p class="metric-value" id="res_sev">—</p>
+        <p class="metric-sub">€ por sinistro</p>
+      </div>
+      <div class="metric highlight">
+        <p class="metric-label">Prêmio Puro</p>
+        <p class="metric-value" id="res_premio">—</p>
+        <p class="metric-sub" id="res_periodo">€ / período</p>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      Prêmio puro técnico calculado via GLM Poisson × Gamma sobre o dataset French Motor TPL.<br>
+      Não inclui carregamentos comerciais, IOF ou demais taxas.
+    </p>
+
+    <button class="btn" onclick="irStep1()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Nova simulação
+    </button>
+  </div>
+
+  <p class="powered">
+    Powered by <a href="https://github.com/leo-martinez/insurance-pricing-glm" target="_blank">insurance-pricing-glm</a> · FastAPI · GLM
+  </p>
+</div>
+
+<script>
+  function fmtCPF(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 3) v = v.slice(0,3) + '.' + v.slice(3);
+    if (v.length > 7) v = v.slice(0,7) + '.' + v.slice(7);
+    if (v.length > 11) v = v.slice(0,11) + '-' + v.slice(11);
+    el.value = v.slice(0, 14);
+  }
+
+  function fmtCEP(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+    el.value = v.slice(0, 9);
+  }
+
+  async function buscaCEP() {
+    const cep = document.getElementById('cep').value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+    try {
+      const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+      const d = await r.json();
+      if (!d.erro) {
+        document.getElementById('endereco').value = d.logradouro || '';
+        document.getElementById('bairro').value = d.bairro || '';
+        document.getElementById('cidade').value = d.localidade || '';
+        document.getElementById('estado').value = d.uf || '';
+      }
+    } catch(e) {}
+  }
+
+  function setDot(n, state) {
+    const d = document.getElementById('dot' + n);
+    d.className = 'step-dot' + (state === 'active' ? ' active' : state === 'done' ? ' done' : '');
+  }
+
+  function irStep1() {
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'none';
+    setDot(1,'active'); setDot(2,''); setDot(3,'');
+  }
+
+  function irStep2() {
+    const nome = document.getElementById('nome').value.trim();
+    const cpf = document.getElementById('cpf').value.trim();
+    if (!nome) { alert('Por favor, informe o nome completo.'); return; }
+    if (cpf.length < 14) { alert('Por favor, informe o CPF completo.'); return; }
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('step3').style.display = 'none';
+    setDot(1,'done'); setDot(2,'active'); setDot(3,'');
+  }
+
+  async function calcular() {
+    const btn = document.getElementById('calcBtn');
+    btn.textContent = 'Calculando...';
+    btn.disabled = true;
+
+    const areaDensity = document.getElementById('AreaDensity').value.split('|');
+    const marcaSel = document.getElementById('marcaVeiculo');
+    const vehBrand = marcaSel.options[marcaSel.selectedIndex].value;
+    const marcaNome = marcaSel.options[marcaSel.selectedIndex].text;
+    const anoModelo = document.getElementById('anoModelo').value;
+    const vehAge = anoModelo ? Math.max(0, 2026 - parseInt(anoModelo)) : 3;
+    const exposureSel = document.getElementById('Exposure');
+    const exposureVal = parseFloat(exposureSel.value);
+    const coberturaTexto = exposureSel.options[exposureSel.selectedIndex].text;
+    const modelo = document.getElementById('modelo').value || '';
+
+    const payload = {
+      DrivAge: parseInt(document.getElementById('DrivAge').value),
+      VehAge: vehAge,
+      VehPower: parseInt(document.getElementById('VehPower').value),
+      BonusMalus: parseInt(document.getElementById('BonusMalus').value),
+      VehBrand: vehBrand,
+      VehGas: document.getElementById('VehGas').value,
+      Area: areaDensity[0],
+      Density: parseFloat(areaDensity[1]),
+      Exposure: exposureVal
+    };
+
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    setDot(1,'done'); setDot(2,'done'); setDot(3,'active');
+
+    document.getElementById('r_nome').textContent = document.getElementById('nome').value;
+    document.getElementById('r_cpf').textContent = document.getElementById('cpf').value;
+    document.getElementById('r_veiculo').textContent = marcaNome + (modelo ? ' ' + modelo : '');
+    document.getElementById('r_ano').textContent = anoModelo || '—';
+    document.getElementById('r_cobertura').textContent = coberturaTexto;
+
+    const erroEl = document.getElementById('erroMsg');
+
+    try {
+      const res = await fetch('https://insurance-pricing-glm.onrender.com/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Erro na API');
+
+      document.getElementById('res_freq').textContent = (data.expected_frequency * 100).toFixed(1) + '%';
+      document.getElementById('res_sev').textContent = '€ ' + data.expected_severity.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res_premio').textContent = '€ ' + data.pure_premium.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res_periodo').textContent = coberturaTexto.toLowerCase();
+      erroEl.style.display = 'none';
+    } catch(e) {
+      erroEl.style.display = 'block';
+      erroEl.textContent = 'A API pode estar hibernando — aguarde 30 segundos e tente novamente. (' + e.message + ')';
+      document.getElementById('res_freq').textContent = '—';
+      document.getElementById('res_sev').textContent = '—';
+      document.getElementById('res_premio').textContent = '—';
+    }
+
+    btn.textContent = 'Calcular Prêmio';
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>
