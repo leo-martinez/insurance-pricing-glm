@@ -81,7 +81,7 @@ insurance-pricing-glm/
 ├── examples/sample_request.json      # API input example
 └── requirements.txt
 
-## 🚧 Roadmap
+## Roadmap
 
 - [x] Frequency model (Poisson GLM)
 - [x] Severity model (Gamma GLM)
