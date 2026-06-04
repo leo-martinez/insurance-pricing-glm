@@ -25,4 +25,3 @@ data/*.zip
 # OS
 .DS_Store
 Thumbs.db
-models/
